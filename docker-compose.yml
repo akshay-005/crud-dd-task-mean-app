@@ -1,0 +1,72 @@
+# docker-compose.yml
+# This file defines all 3 services of our MEAN app:
+# 1. mongo     - Database
+# 2. backend   - Node.js/Express API
+# 3. frontend  - Angular app served by nginx
+#
+# Docker Compose starts all 3 together and connects them
+
+# docker-compose.yml
+# Orchestrates all 3 services: mongo, backend, frontend
+version: '3.8'
+
+services:
+
+  # ================================
+  # SERVICE 1: MongoDB Database
+  # ================================
+  mongo:
+    image: mongo:6.0          # Use official MongoDB image
+    container_name: mongo
+    restart: always           # Auto-restart if it crashes
+    ports:
+      - "27017:27017"         # host:container port mapping
+    volumes:
+      - mongo_data:/data/db   # Persist data even if container restarts
+    networks:
+      - mean-network
+
+  # ================================
+  # SERVICE 2: Node.js Backend API
+  # ================================
+  backend:
+    build:
+      context: ./backend      # Look for Dockerfile in ./backend folder
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # Override the hardcoded localhost in db.config.js
+      # 'mongo' is the service name above - Docker resolves it automatically
+      - MONGO_URL=mongodb://mongo:27017/dd_db
+    depends_on:
+      - mongo                 # Wait for mongo to start first
+    networks:
+      - mean-network
+
+  # ================================
+  # SERVICE 3: Angular Frontend
+  # ================================
+  frontend:
+    build:
+      context: ./frontend     # Look for Dockerfile in ./frontend folder
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "80:80"               # Expose on port 80 (standard HTTP)
+    depends_on:
+      - backend               # Wait for backend to start first
+    networks:
+      - mean-network
+
+# Named volume - data persists even when containers stop
+volumes:
+  mongo_data:
+
+# Internal network - all containers can talk to each other by service name
+networks:
+  mean-network:
+    driver: bridge
