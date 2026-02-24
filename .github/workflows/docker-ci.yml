@@ -1,0 +1,36 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Backend Image
+        run: |
+          docker build -t akshaydevk/dd-backend:latest ./backend
+
+      - name: Push Backend Image
+        run: |
+          docker push akshaydevk/dd-backend:latest
+
+      - name: Build Frontend Image
+        run: |
+          docker build -t akshaydevk/dd-frontend:latest ./frontend
+
+      - name: Push Frontend Image
+        run: |
+          docker push akshaydevk/dd-frontend:latest
