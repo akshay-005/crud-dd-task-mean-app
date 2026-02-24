@@ -87,3 +87,5 @@ Visit: http://YOUR_EC2_IP
 2. GitHub Actions builds Docker images
 3. Images pushed to Docker Hub
 4. SSH into EC2, pull new images, restart containers
+
+
